@@ -211,7 +211,6 @@
     largeLayout.largeCellSize = LARGE_CELL_SIZE;
     largeLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     largeLayout.layoutMode = layoutModeLarge;
-    largeLayout.isLargeLayout = YES;
     largeLayout.maximumShrinkHeight = MAXIMUM_SHINK_HEIGHT_FOR_CELL;
     
     self.largeCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(x, y, w, h) collectionViewLayout:largeLayout];
@@ -276,7 +275,6 @@
             layout.indexPathOfFocusedCell = indexPathOfFocusedCell;
             layout.changeInHeight = MAX(-MAXIMUM_SHINK_HEIGHT_FOR_CELL, -changePoint.y);   // a negative value of y indicates it's panning upwards ==> we want the distance so add a minus sign
 
-            CollectionViewCell *cell = (CollectionViewCell *)[self.smallCollectionView cellForItemAtIndexPath:indexPathOfFocusedCell];
             [layout invalidateLayout];
         }
         

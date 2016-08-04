@@ -66,45 +66,58 @@
         
         // ENLARGE THE FOCUSED CELL
         
-        // Calculate the frame of focused cell first because we need to reference the x and width for non-focused cells
-        h = self.smallCellSize.height + MIN(self.changeInHeight, self.maxChangeInHeight);
-        w = self.smallCellSize.width / self.smallCellSize.height * h;
-        y = - (h - CGRectGetHeight(self.collectionView.frame));
+        CGFloat originalX = indexPath.item * self.smallCellSize.width;
         
-        if (self.indexPathOfFocusedCell.item == 0 && self.collectionView.contentOffset.x == 0) {
-            x = 0;
-            
-        } else if (self.indexPathOfFocusedCell.item == [self.collectionView numberOfItemsInSection:0] - 1 && self.collectionView.contentOffset.x == self.collectionView.contentSize.width - self.smallCellSize.width) {
-            x = self.collectionView.contentSize.width - w;
-            
-        } else {
-            // a1: distance between contentOffset.x and minimum x of focused cell
-            CGFloat a1 = self.indexPathOfFocusedCell.item * self.smallCellSize.width - self.collectionView.contentOffset.x;
-            
-            CGFloat changeInW = MIN(self.changeInHeight, self.maxChangeInHeight) * self.smallCellSize.width / self.smallCellSize.height;
-            
-            // w1: distance to add to the left of focused cell
-            CGFloat w1 = (a1 * changeInW) / (CGRectGetWidth(self.collectionView.frame) - self.smallCellSize.width);
-            
-            x = self.indexPathOfFocusedCell.item * self.smallCellSize.width - w1;
-        }
+        // Calaculate the proportion of distance added to left side (pl).
+        // For example, if the cell is on the left, pl will be 0;
+        // if the cell is in the middle of screen, pl will both be 0.5;
+        // if the cell is positioned on the right, pl will be 1.
+        // pl can be negative (consider the case where part of the cell is out of the screen).
+        // pl: the distance between x of cell and left of screen (collection view's content offset's x)
         
-        if (![indexPath isEqual:self.indexPathOfFocusedCell]) {
+        CGFloat originalXOfFocusedCell = self.indexPathOfFocusedCell.item * self.smallCellSize.width;
+        CGFloat horizontalDistance = originalXOfFocusedCell - self.collectionView.contentOffset.x;
+        
+        CGFloat maxHorizontalDistance = self.collectionView.frame.size.width - self.smallCellSize.width;
+        CGFloat pl = horizontalDistance / maxHorizontalDistance;
+        
+        CGFloat changeInW = MIN(self.changeInHeight, self.maxChangeInHeight) * self.smallCellSize.width / self.smallCellSize.height;
+        
+        // use changeInW to calculate the horizontal distance moved for left side & right side
+        CGFloat distanceMovedLeftwards = changeInW * pl;
+        CGFloat distanceMovedRightwards = changeInW * (1 - pl);
+        
+        if ([indexPath isEqual:self.indexPathOfFocusedCell]) {
             
-            NSInteger difference = ABS(indexPath.item - self.indexPathOfFocusedCell.item);
+            h = self.smallCellSize.height + MIN(self.changeInHeight, self.maxChangeInHeight);
+            w = self.smallCellSize.width / self.smallCellSize.height * h;
+            y = - (h - CGRectGetHeight(self.collectionView.frame));
             
-            if (indexPath.item < self.indexPathOfFocusedCell.item) {
-                // The cell is located BEFORE (to the LEFT of) selected cell
-                x = x - difference * self.smallCellSize.width;
+            if (self.indexPathOfFocusedCell.item == 0 && self.collectionView.contentOffset.x == 0) {
+                x = 0;
+
+            } else if (self.indexPathOfFocusedCell.item == [self.collectionView numberOfItemsInSection:0] - 1 &&
+                       self.collectionView.contentOffset.x == self.collectionView.contentSize.width - self.smallCellSize.width) {
+                x = self.collectionView.contentSize.width - w;
                 
             } else {
-                // The cell is located AFTER (to the RIGHT of) selected cell
-                x = x + w + (difference - 1) * self.smallCellSize.width;
+                x = originalX - distanceMovedLeftwards;
             }
             
-            y = 0;
-            w = self.smallCellSize.width;
+        } else {
+            
             h = self.smallCellSize.height;
+            w = self.smallCellSize.width;
+            y = 0;
+            
+            if (self.indexPathOfFocusedCell.item > indexPath.item) {
+                // Focused cell is on the RIGHT side of current cell
+                x = originalX - distanceMovedLeftwards;
+                
+            } else {
+                // Focused cell is on the LEFT side of current cell
+                x = originalX + distanceMovedRightwards;
+            }
         }
         
         attributes.frame = CGRectMake(x, y, w, h);
@@ -136,7 +149,6 @@
         
         attributes.frame = CGRectMake(x, y, w, h);
     }
-    
     
     if (self.layoutMode == layoutModeLarge) {
         

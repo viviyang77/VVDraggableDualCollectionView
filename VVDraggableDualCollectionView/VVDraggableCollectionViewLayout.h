@@ -27,8 +27,6 @@ typedef enum {
 
 @property (strong, nonatomic) NSIndexPath *indexPathOfFocusedCell;
 
-@property (assign, nonatomic) BOOL isLargeLayout;
-
 @property (assign, nonatomic) layoutMode layoutMode;
 
 // -------------------------
